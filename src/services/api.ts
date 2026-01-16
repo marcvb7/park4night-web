@@ -1,12 +1,28 @@
 import axios from 'axios';
-import { ChatResponse } from '../types';
+import { ChatResponse, Message } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-export const sendMessage = async (message: string): Promise<string> => {
+// Converteix el format de missatges del frontend al format de l'API
+const formatHistoryForAPI = (messages: Message[]) => {
+  return messages.map(msg => ({
+    role: msg.sender === 'user' ? 'user' : 'assistant',
+    content: msg.text
+  }));
+};
+
+export const sendMessage = async (message: string, conversationHistory: Message[] = []): Promise<string> => {
   try {
+    // Filtrar el missatge de benvinguda i preparar l'historial
+    const relevantHistory = conversationHistory
+      .filter(msg => msg.id !== 'welcome') // Excloure missatge de benvinguda
+      .slice(0, -1); // Excloure l'últim missatge (que és el que estem enviant ara)
+
+    const history = formatHistoryForAPI(relevantHistory);
+
     const response = await axios.post<ChatResponse>(`${API_URL}/api/chat`, {
       message,
+      ...(history.length > 0 && { history }) // Només enviar history si hi ha missatges
     }, {
       timeout: 60000, // 60 segons per si l'API està hibernant
     });

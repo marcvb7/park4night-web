@@ -4,7 +4,7 @@ import { ChatInput } from './components/ChatInput';
 import { LoadingIndicator } from './components/LoadingIndicator';
 import { sendMessage } from './services/api';
 import { Message } from './types';
-import { Tent, AlertCircle } from 'lucide-react';
+import { Tent, AlertCircle, RefreshCw } from 'lucide-react';
 
 function App() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -32,6 +32,17 @@ function App() {
     setMessages([welcomeMessage]);
   }, []);
 
+  const handleClearConversation = () => {
+    const welcomeMessage: Message = {
+      id: 'welcome',
+      text: 'Hola! Soc el teu assistent de Park4Night. Puc ajudar-te a trobar llocs per aparcar o acampar. Què busques?',
+      sender: 'agent',
+      timestamp: new Date()
+    };
+    setMessages([welcomeMessage]);
+    setError(null);
+  };
+
   const handleSendMessage = async (text: string) => {
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -40,7 +51,9 @@ function App() {
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    // Afegir missatge d'usuari a l'estat
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setIsLoading(true);
     setError(null);
     setIsWakingUp(false);
@@ -51,7 +64,8 @@ function App() {
     }, 3000);
 
     try {
-      const response = await sendMessage(text);
+      // Passar l'historial complet (amb el nou missatge inclòs)
+      const response = await sendMessage(text, updatedMessages);
 
       clearTimeout(wakeUpTimer);
       setIsWakingUp(false);
@@ -88,12 +102,25 @@ function App() {
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 shadow-lg">
-        <div className="max-w-4xl mx-auto flex items-center gap-3">
-          <Tent className="w-8 h-8" />
-          <div>
-            <h1 className="text-xl font-bold">Park4Night Agent</h1>
-            <p className="text-sm text-blue-100">El teu assistent de càmpings i aparcaments</p>
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Tent className="w-8 h-8" />
+            <div>
+              <h1 className="text-xl font-bold">Park4Night Agent</h1>
+              <p className="text-sm text-blue-100">El teu assistent de càmpings i aparcaments</p>
+            </div>
           </div>
+          {messages.length > 1 && (
+            <button
+              onClick={handleClearConversation}
+              disabled={isLoading}
+              className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Nova conversa"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span className="text-sm font-medium hidden sm:inline">Nova conversa</span>
+            </button>
+          )}
         </div>
       </header>
 
