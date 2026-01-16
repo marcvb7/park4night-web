@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ChatMessage } from './components/ChatMessage';
 import { ChatInput } from './components/ChatInput';
 import { LoadingIndicator } from './components/LoadingIndicator';
+import { WelcomeGuide } from './components/WelcomeGuide';
 import { sendMessage } from './services/api';
 import { Message } from './types';
 import { Tent, AlertCircle, RefreshCw } from 'lucide-react';
@@ -21,25 +22,8 @@ function App() {
     scrollToBottom();
   }, [messages, isLoading]);
 
-  useEffect(() => {
-    // Missatge de benvinguda
-    const welcomeMessage: Message = {
-      id: 'welcome',
-      text: 'Hola! Soc el teu assistent de Park4Night. Puc ajudar-te a trobar llocs per aparcar o acampar. Què busques?',
-      sender: 'agent',
-      timestamp: new Date()
-    };
-    setMessages([welcomeMessage]);
-  }, []);
-
   const handleClearConversation = () => {
-    const welcomeMessage: Message = {
-      id: 'welcome',
-      text: 'Hola! Soc el teu assistent de Park4Night. Puc ajudar-te a trobar llocs per aparcar o acampar. Què busques?',
-      sender: 'agent',
-      timestamp: new Date()
-    };
-    setMessages([welcomeMessage]);
+    setMessages([]);
     setError(null);
   };
 
@@ -127,6 +111,10 @@ function App() {
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4">
         <div className="max-w-4xl mx-auto">
+          {/* Welcome Guide - shown when no messages */}
+          {messages.length === 0 && !isLoading && <WelcomeGuide />}
+
+          {/* Messages */}
           {messages.map(message => (
             <ChatMessage key={message.id} message={message} />
           ))}
